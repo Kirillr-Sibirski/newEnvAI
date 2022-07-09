@@ -9,7 +9,7 @@
     "start": "node server/index.js"
   },
   "engines": {
-    "node": "16.14.2",
+    "node": "^16",
     "npm": "8.5.0"
   },
   "keywords": [],
