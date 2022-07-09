@@ -5,13 +5,17 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js",
-    "build": "cd client && npm install && npm run build"
+    "start": "node index",
+    "dev": "nodemon index",
+    "build": "cd .. && cd client && npm install && npm run build"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "express": "^4.18.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.19"
   }
 }
