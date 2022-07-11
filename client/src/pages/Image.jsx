@@ -1,67 +1,99 @@
 import React, { useState, useEffect } from 'react';
 import { animalText } from './Animals';
 
-// Housekeeping for openAI
-const { Configuration, OpenAIApi } = require("openai");
-const configuration = new Configuration({
-  apiKey: process.env.REACT_APP_OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
-
 let errors;
 
 // Send 3 requests to DALL-E mini with descriptions
 async function generate_images(neutral, positive, negative) {
   errors("AI: Image generation in progress..")
   // Send request to replicate.com API to generate images
+  fetch('/dall-e', {
+    method: "post",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ a: neutral })
+  }).then(function (response) {
+    return response.json()
+  }).then(function (data) {
+    return data;
+  }).catch(function (error) {
+    console.error(error);
+  });
 }
 
 async function generate_description(desc, good, bad) {
-  // Make input sentence more creative & interesting
-  const description = await openai.createCompletion({
-    model: "text-davinci-002",
-    prompt: "Create sentence with"+desc,
-    max_tokens: 20,
-    temperature: 0.6,
-  });
-  // Generate sentences with description and adjectives using openAI's Generation
-  const adj_positive = await openai.createCompletion({
-    model: "text-davinci-002",
-    prompt: "Add adjectives "+good+"to sentence "+desc,
-    max_tokens: 20,
-    temperature: 0.4,
-  });
-  // Generate sentences with description and adjectives using openAI's Generation
-  const adj_negative = await openai.createCompletion({
-    model: "text-davinci-002",
-    prompt: "Add adjectives "+bad+"to sentence "+desc,
-    max_tokens: 20,
-    temperature: 0.4,
-  });
-  console.log(description.data.choices[0].text, adj_positive.data.choices[0].text, adj_negative.data.choices[0].text)
-  generate_images(description.data.choices[0].text, adj_positive.data.choices[0].text, adj_negative.data.choices[0].text);
-}
+    // Generate sentences with description and adjectives using openAI's Generation
+    // Make input sentence more creative & interesting
+    const res_desc = await fetch('/description', {
+      method: "post",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({a: 'Create sentence with'+desc})
+    }).then(function (response) {
+        return response.json()
+    }).then(function (data) {
+      return data;
+    }).catch(function (error) {
+      console.error(error);
+    });
+    // Generate sentences with description and adjectives using openAI's Generation (positive)
+    const res_pos = await fetch('/description', {
+      method: "post",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({a: 'Add adjectives '+good+'to sentence '+desc})
+    }).then(function (response) {
+        return response.json()
+    }).then(function (data) {
+      return data;
+    }).catch(function (error) {
+      console.error(error);
+    });
+    // Generate sentences with description and adjectives using openAI's Generation (negative)
+    const res_neg = await fetch('/description', {
+      method: "post",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({a: 'Add adjectives '+bad+'to sentence '+desc})
+    }).then(function (response) {
+        return response.json()
+    }).then(function (data) {
+      return data;
+    }).catch(function (error) {
+      console.error(error);
+    });
+    if (res_desc != null && res_desc.length > 0 && res_pos != null && res_pos.length > 0 && res_neg != null && res_neg.length > 0)
+      generate_images(res_desc, res_pos, res_neg);
+    else 
+      errors("AI: Bi-boop. Seems like an error occured during generation of decs-ri-p-tio-n..")
+} 
+
 // Check adjectives + description with sentiment analysis for positive, neutral or negative using openAI's Classification
 async function sentiment_analysis(desc, good, bad) {
     // Generate sentences with description and adjectives using openAI's Generation
-    const response = await openai.createCompletion({
-      model: "text-davinci-002",
-      prompt: "Classify the sentiment in these words: \n 1. '"+desc+"'\n 2. '"+good+"'\n 3. '"+bad+"'",
-      max_tokens: 40,
-      temperature: 0,
+    const body = {
+      description: desc,
+      positive: good,
+      negative: bad
+    }
+    fetch('/sentiment_analysis', {
+      method: "post",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    }).then(function (response) {
+        return response.json()
+    }).then(function (data) {
+        let rspList = data.split('\n');
+        let substrings = ["positive", "neutral", "negative"];
+        // This checks if user response match with intended response
+        if(rspList[2].includes(substrings[1]) && rspList[3].includes(substrings[0]) && rspList[4].includes(substrings[2])) {
+          // if ok execute the rest
+          errors("AI: Description generation in progress..")
+          generate_description(desc, good, bad);
+        }
+        else { 
+          errors("AI: Hm.. First input must be neutral, second input must be positive, third input must be negative. Am I goin' crazy?")
+        }
+    }).catch(function (error) {
+      console.error(error);
     });
-    const originalText = response.data.choices[0].text.toLocaleLowerCase();
-    let rspList = originalText.split('\n');
-    let substrings = ["positive", "neutral", "negative"];
-    // This checks if user response match with intended response
-    if(rspList[2].includes(substrings[1]) && rspList[3].includes(substrings[0]) && rspList[4].includes(substrings[2])) {
-      // if ok execute the rest
-      errors("AI: Description generation in progress..")
-      generate_description(desc, good, bad);
-    }
-    else { 
-      errors("AI: Hm.. First input must be neutral, second input must be positive, third input must be negative. Am I goin' crazy?")
-    }
+
 }
 // Check 'desc' sentence for containing animal vocabulary 
 async function animalVocab(desc, good, bad){
@@ -89,12 +121,7 @@ function Image() {
   
       /* Unassign when component unmounts */
       return () => errors = null
-    })
-    useEffect(() => {
-      fetch("/api")
-        .then((res) => res.json())
-        .then((data) => console.log(data.message));
-    }, []);
+    }, [])
     const handleSubmit = (event) => {
       event.preventDefault();
       

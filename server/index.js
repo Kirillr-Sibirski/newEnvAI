@@ -1,8 +1,24 @@
 const express = require("express");
+const bodyParser = require("body-parser");
+const router = express.Router();
 const path = require('path');
+const app = express();
+
+//Here we are configuring express to use body-parser as middle-ware.
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
+require('dotenv').config(); // Load environment variables from .env file
+
+// Housekeeping for openAI
+const { Configuration, OpenAIApi } = require("openai");
+const configuration = new Configuration({
+  apiKey: process.env.REACT_APP_OPENAI_API_KEY,
+});
+const openai = new OpenAIApi(configuration);
 
 const PORT = process.env.PORT || 3001;
-const app = express();
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 app.listen(PORT, () => {
   console.log(`Server listening on ${PORT}`);
@@ -10,10 +26,52 @@ app.listen(PORT, () => {
 // Have Node serve the files for our built React app
 app.use(express.static(path.resolve(__dirname, '../client/build')));
 
-// Handle GET requests to /api route
-app.get("/api", (req, res) => {
-  res.json({ message: "Hello from server!" });
+// Handle POST requests to /sentiment_analysis route
+router.post('/sentiment_analysis', function requestHandler(req, res) {
+  openai.createCompletion({
+    model: "text-davinci-002",
+    prompt: "Classify the sentiment in these words: \n 1. '"+req.body.description+"'\n 2. '"+req.body.positive+"'\n 3. '"+req.body.negative+"'",
+    max_tokens: 40,
+    temperature: 0,
+  }).then(function (response){
+    res.end(JSON.stringify(response.data.choices[0].text.toLocaleLowerCase()))
+  })
 });
+// Handle POST requests to /description route
+router.post('/description', function requestHandler(req, res) {
+    // Make input sentence more creative & interesting
+    openai.createCompletion({
+      model: "text-davinci-002",
+      prompt: req.body.a,
+      max_tokens: 20,
+      temperature: 0.6,
+    }).then(function (response){
+      res.end(JSON.stringify(response.data.choices[0].text.toLocaleLowerCase()))
+    })
+});
+// Handle POST requests to /dall-e route
+router.post('/dall-e', function requestHandler(req, res) { // image generation
+  /*fetch('https://api.replicate.com/v1/predictions', {
+    method: "post",
+    headers: { 
+      Authorization: process.env.REACT_APP_REPLICATE_API_TOKEN,
+      "Content-Type": "application/json"
+    },
+    data: {
+      version: "2e3975b1692cd6aecac28616dba364cc9f1e30c610c6efd62dbe9b9c7d1d03ea",
+      input: {prompt: req.body.a, n_predictions: 1}
+    }
+  }).then(function (response) {
+      return response.json()
+  }).then(function (data) { // response from replicate.com API
+    console.log(data);
+  }).catch(function (error) {
+    console.error(error);
+  });*/
+});
+
+// add router in the Express app.
+app.use("/", router);
 
 // All other GET requests not handled before will return our React app
 app.get('*', (req, res) => {
@@ -41,4 +99,4 @@ const corsOptions = {
     }
   }
 }
-app.use(cors(corsOptions))
+
