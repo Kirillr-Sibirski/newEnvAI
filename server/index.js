@@ -3,6 +3,7 @@ const bodyParser = require("body-parser");
 const router = express.Router();
 const path = require('path');
 const app = express();
+const axios = require('axios')
 
 //Here we are configuring express to use body-parser as middle-ware.
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -51,6 +52,24 @@ router.post('/description', function requestHandler(req, res) {
 });
 // Handle POST requests to /dall-e route
 router.post('/dall-e', function requestHandler(req, res) { // image generation
+  axios({
+    url: 'https://api.replicate.com/v1/predictions',
+    method: 'post',
+    headers: { 
+      Authorization: process.env.REACT_APP_REPLICATE_API_TOKEN,
+      "Content-Type": "application/json"
+    },
+    data: {
+      version: "2e3975b1692cd6aecac28616dba364cc9f1e30c610c6efd62dbe9b9c7d1d03ea",
+      input: {prompt: req.body.a, n_predictions: 1}
+    }
+  }).then(function (response) {
+    return response.json()
+  }).then(function (data) { // response from replicate.com API
+    console.log(data);
+  }).catch(function (error) {
+    console.error(error);
+  });
   /*fetch('https://api.replicate.com/v1/predictions', {
     method: "post",
     headers: { 
