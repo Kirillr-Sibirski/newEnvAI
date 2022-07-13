@@ -2,10 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { animalText } from './Animals';
 
 let errors;
+let picture_neu;
+let picture_pos;
+let picture_neg;
+//let hide;
 
 // Send 3 requests to DALL-E mini with descriptions
 async function generate_images(neutral, positive, negative) {
-  errors("AI: Image generation in progress..")
+  errors("AI: #1 Image generation in progress..")
   // Send request to replicate.com API to generate images
   fetch('/dall-e', {
     method: "post",
@@ -14,7 +18,37 @@ async function generate_images(neutral, positive, negative) {
   }).then(function (response) {
     return response.json()
   }).then(function (data) {
-    return data;
+    picture_neu(data)
+    //hide('none')
+    errors("AI: #2 Image generation in progress..")
+    // Send request to replicate.com API to generate images
+    fetch('/dall-e', {
+      method: "post",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ a: positive })
+    }).then(function (response) {
+      return response.json()
+    }).then(function (data) {
+      picture_pos(data)
+      //hide('none')
+      errors("AI: #3 Image generation in progress..")
+      // Send request to replicate.com API to generate images
+      fetch('/dall-e', {
+        method: "post",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ a: negative })
+      }).then(function (response) {
+        return response.json()
+      }).then(function (data) {
+        errors("AI: Finally! Images were generated.")
+        picture_neg(data)
+        //hide('none')
+      }).catch(function (error) {
+        console.error(error);
+      });
+    }).catch(function (error) {
+      console.error(error);
+    });
   }).catch(function (error) {
     console.error(error);
   });
@@ -114,11 +148,20 @@ function Image() {
     const [good, setGood] = useState("");
     const [bad, setBad] = useState("");
     const [errorMessage, setErrorMessage] = useState(null);
-  
+    const [image_neu, setImageNeu] = useState("");
+    const [image_pos, setImagePos] = useState("");
+    const [image_neg, setImageNeg] = useState("");
+
+    //const [show_Hide, setShowHide] = useState('flex');
+
     useEffect(() => {
       /* Assign update to outside variable */
       errors = setErrorMessage
-  
+      picture_neu = setImageNeu
+      picture_pos = setImagePos
+      picture_neg = setImageNeg
+      //hide = setShowHide
+
       /* Unassign when component unmounts */
       return () => errors = null
     }, [])
@@ -156,6 +199,21 @@ function Image() {
             <input type="submit" />
             </form>
             <h3>{errorMessage}</h3>
+            <div><img
+              alt="Generated image (description)"
+              src={image_neu}
+              //style={{display: show_Hide}}
+            /></div>
+            <div><img
+              alt="Generated image (positive)"
+              src={image_pos}
+              //style={{display: show_Hide}}
+            /></div>
+            <div><img
+              alt="Generated image (negative)"
+              src={image_neg}
+              //style={{display: show_Hide}}
+            /></div>
         </div>
     );
 }

@@ -3,7 +3,7 @@ const bodyParser = require("body-parser");
 const router = express.Router();
 const path = require('path');
 const app = express();
-const axios = require('axios')
+const axios = require('axios');
 
 //Here we are configuring express to use body-parser as middle-ware.
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -14,7 +14,7 @@ require('dotenv').config(); // Load environment variables from .env file
 // Housekeeping for openAI
 const { Configuration, OpenAIApi } = require("openai");
 const configuration = new Configuration({
-  apiKey: process.env.REACT_APP_OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY,
 });
 const openai = new OpenAIApi(configuration);
 
@@ -38,6 +38,7 @@ router.post('/sentiment_analysis', function requestHandler(req, res) {
     res.end(JSON.stringify(response.data.choices[0].text.toLocaleLowerCase()))
   })
 });
+
 // Handle POST requests to /description route
 router.post('/description', function requestHandler(req, res) {
     // Make input sentence more creative & interesting
@@ -50,43 +51,84 @@ router.post('/description', function requestHandler(req, res) {
       res.end(JSON.stringify(response.data.choices[0].text.toLocaleLowerCase()))
     })
 });
+
 // Handle POST requests to /dall-e route
 router.post('/dall-e', function requestHandler(req, res) { // image generation
-  axios({
-    url: 'https://api.replicate.com/v1/predictions',
-    method: 'post',
-    headers: { 
-      Authorization: process.env.REACT_APP_REPLICATE_API_TOKEN,
-      "Content-Type": "application/json"
-    },
-    data: {
+  axios.post(
+    'https://api.replicate.com/v1/predictions',
+    {
       version: "2e3975b1692cd6aecac28616dba364cc9f1e30c610c6efd62dbe9b9c7d1d03ea",
       input: {prompt: req.body.a, n_predictions: 1}
-    }
-  }).then(function (response) {
-    return response.json()
-  }).then(function (data) { // response from replicate.com API
-    console.log(data);
-  }).catch(function (error) {
-    console.error(error);
-  });
-  /*fetch('https://api.replicate.com/v1/predictions', {
-    method: "post",
-    headers: { 
-      Authorization: process.env.REACT_APP_REPLICATE_API_TOKEN,
-      "Content-Type": "application/json"
     },
-    data: {
-      version: "2e3975b1692cd6aecac28616dba364cc9f1e30c610c6efd62dbe9b9c7d1d03ea",
-      input: {prompt: req.body.a, n_predictions: 1}
+    {
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Token ${process.env.REPLICATE_API_TOKEN}`,
+      }
+  }).then(main_response => {
+    // wait until another request gets an image and return it to client
+    async function get_req(response)
+    {
+      axios.get(
+        `https://api.replicate.com/v1/predictions/${response.data.id}`,
+        {
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Token ${process.env.REPLICATE_API_TOKEN}`,
+          }
+      }).then(function (image){
+        let data = image.data.status;
+        if(data == "success" || data == "succeeded"){
+          let output = image.data.output[0].image
+          res.end(JSON.stringify(output));
+          /*axios.get( // Get the image from URL
+            res.data.output[0].image,
+            {
+              headers: { 
+                'Authorization': `Token ${process.env.REPLICATE_API_TOKEN}`,
+              }
+          }).then(function (res){
+            // process an image
+            console.log("Image generated!!!");
+
+            const getCircularReplacer = () => {
+              const seen = new WeakSet();
+              return (key, value) => {
+                if (typeof value === 'object' && value !== null) {
+                  if (seen.has(value)) {
+                    return;
+                  }
+                  seen.add(value);
+                }
+                return value;
+              };
+            };
+
+            const str = JSON.stringify(res, getCircularReplacer());
+            const bytes = new encode.TextEncoder().encode(str);
+            const blob = new Blob([bytes], {
+                type: "application/json;charset=utf-8"
+            });
+            console.log(blob instanceof Blob)
+            let name = 'Animal NFT'
+            let description = req.body.a;
+            nftstorage.store({
+              blob,
+              name,
+              description,
+            }).then(image_url => console.log(image_url.url))
+            .catch(error => console.log(error))
+
+            //res.end(JSON.stringify(res))
+          });*/
+        }
+        else {
+          get_req(response);
+        }
+      });
     }
-  }).then(function (response) {
-      return response.json()
-  }).then(function (data) { // response from replicate.com API
-    console.log(data);
-  }).catch(function (error) {
-    console.error(error);
-  });*/
+    get_req(main_response);
+  }).catch(error => console.error(error))
 });
 
 // add router in the Express app.
