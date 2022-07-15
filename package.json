@@ -24,6 +24,7 @@
     "dotenv": "^16.0.1",
     "express": "^4.18.1",
     "express-validator": "^6.14.2",
+    "nft.storage": "^6.4.0",
     "nodemon": "^2.0.19",
     "openai": "^3.0.0"
   },

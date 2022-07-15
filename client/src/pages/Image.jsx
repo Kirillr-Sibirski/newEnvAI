@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { animalText } from './Animals';
 
 let errors;
-let picture_neu;
-let picture_pos;
-let picture_neg;
 //let hide;
+
+let picture_neu; 
+let picture_pos; 
+let picture_neg; 
 
 // Send 3 requests to DALL-E mini with descriptions
 async function generate_images(neutral, positive, negative) {
@@ -154,6 +155,19 @@ function Image() {
 
     //const [show_Hide, setShowHide] = useState('flex');
 
+    const regenerate = () => {
+      // Do a check if images were generated
+      window.location.reload() // refresh page
+    }
+    const proceed = () => {
+      // Do a check if images were generated
+      // Export image to be used at minting page
+      window.location.href = '/mint'; // Redirect to NFT minting page 
+      localStorage.setItem("image_neu", image_neu)
+      localStorage.setItem("image_pos", image_pos)
+      localStorage.setItem("image_neg", image_neg)
+    }
+
     useEffect(() => {
       /* Assign update to outside variable */
       errors = setErrorMessage
@@ -199,21 +213,25 @@ function Image() {
             <input type="submit" />
             </form>
             <h3>{errorMessage}</h3>
-            <div><img
-              alt="Generated image (description)"
-              src={image_neu}
-              //style={{display: show_Hide}}
-            /></div>
-            <div><img
-              alt="Generated image (positive)"
-              src={image_pos}
-              //style={{display: show_Hide}}
-            /></div>
-            <div><img
-              alt="Generated image (negative)"
-              src={image_neg}
-              //style={{display: show_Hide}}
-            /></div>
+            <div /*Hide this block when image is not generated*/> 
+              <div><img
+                alt="neutral"
+                src={image_neu} 
+                //style={{display: show_Hide}}
+              /></div>
+              <div><img
+                alt="positive"
+                src={image_pos}
+                //style={{display: show_Hide}}
+              /></div>
+              <div><img
+                alt="negative"
+                src={image_neg}
+                //style={{display: show_Hide}}
+              /></div>
+              <button /* Do checks if images were generated */ onClick={regenerate} className="btn btn-secondary btn-sm m-2">Regenerate</button>
+              <button /* Do checks if images were generated */ onClick={proceed} className="btn btn-secondary btn-sm m-2">Proceed</button>
+            </div>
         </div>
     );
 }

@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { Navigate } from "react-router-dom";
 import { Route, Redirect } from 'react-router'
 
-export var wallet_address = null; // To use on other pages
-
 function Home() {
     const [errorMessage, setErrorMessage] = useState(null);
 	const [connButtonText, setConnButtonText] = useState('Connect Wallet');
@@ -15,21 +13,21 @@ function Home() {
 				accountChangedHandler(result[0]);
 				setConnButtonText('Wallet Connected');
                 window.location.href = '/image'; // Redirect to image generation page 
-                setErrorMessage()
+				localStorage.setItem("wallet_address", result[0])
+                setErrorMessage("")
 			})
 			.catch(error => {
 				setErrorMessage(error.message);
 			});
 
 		} else {
-			console.log('Need to install MetaMask');
 			setErrorMessage('Please install MetaMask browser extension to interact');
 		}
 	}
 
 	// update account, will cause component re-render
 	const accountChangedHandler = (newAccount) => {
-        wallet_address = newAccount;
+        localStorage.setItem("wallet_address", newAccount)
 	}
 
 	const chainChangedHandler = () => {

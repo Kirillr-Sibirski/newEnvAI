@@ -4,6 +4,7 @@ const router = express.Router();
 const path = require('path');
 const app = express();
 const axios = require('axios');
+const { NFTStorage, File, Blob } = require('nft.storage')
 
 //Here we are configuring express to use body-parser as middle-ware.
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -17,6 +18,8 @@ const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
 const openai = new OpenAIApi(configuration);
+
+const IPFS = new NFTStorage({ token: process.env.NFT_STORAGE_API_TOKEN })
 
 const PORT = process.env.PORT || 3001;
 app.use(express.static(path.join(__dirname, '..', 'public')));
@@ -81,46 +84,6 @@ router.post('/dall-e', function requestHandler(req, res) { // image generation
         if(data == "success" || data == "succeeded"){
           let output = image.data.output[0].image
           res.end(JSON.stringify(output));
-          /*axios.get( // Get the image from URL
-            res.data.output[0].image,
-            {
-              headers: { 
-                'Authorization': `Token ${process.env.REPLICATE_API_TOKEN}`,
-              }
-          }).then(function (res){
-            // process an image
-            console.log("Image generated!!!");
-
-            const getCircularReplacer = () => {
-              const seen = new WeakSet();
-              return (key, value) => {
-                if (typeof value === 'object' && value !== null) {
-                  if (seen.has(value)) {
-                    return;
-                  }
-                  seen.add(value);
-                }
-                return value;
-              };
-            };
-
-            const str = JSON.stringify(res, getCircularReplacer());
-            const bytes = new encode.TextEncoder().encode(str);
-            const blob = new Blob([bytes], {
-                type: "application/json;charset=utf-8"
-            });
-            console.log(blob instanceof Blob)
-            let name = 'Animal NFT'
-            let description = req.body.a;
-            nftstorage.store({
-              blob,
-              name,
-              description,
-            }).then(image_url => console.log(image_url.url))
-            .catch(error => console.log(error))
-
-            //res.end(JSON.stringify(res))
-          });*/
         }
         else {
           get_req(response);
@@ -129,6 +92,27 @@ router.post('/dall-e', function requestHandler(req, res) { // image generation
     }
     get_req(main_response);
   }).catch(error => console.error(error))
+});
+
+// Handle POST requests to /upload_image route
+router.post('/upload_image', function requestHandler(req, res) { // IPFS
+  // convert objectto binary
+  let output = '',
+  input = JSON.stringify(req.body.image) // convert the json to string.
+  // loop over the string and convert each charater to binary string.
+  for (i = 0; i < input.length; i++) {
+    output += input[i].charCodeAt(0).toString(2) + " ";
+  }
+
+  const imageFile = new File([ output.trimEnd() ], 'nft.png', { type: 'image/png' }) // req.body.image
+  IPFS.store({
+    name: req.body.name,
+    description: req.body.description,
+    image: imageFile
+  }).then(function (url){
+    res.end(JSON.stringify(url.url));
+  })
+
 });
 
 // add router in the Express app.
