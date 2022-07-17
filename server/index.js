@@ -115,6 +115,11 @@ router.post('/upload_image', function requestHandler(req, res) { // IPFS
 
 });
 
+// Get API key for google maps
+router.post('/get_googleMaps', function requestHandler(req, res) {
+  res.end(JSON.stringify(process.env.GOOGLE_MAPS_API_KEY));
+});
+
 // add router in the Express app.
 app.use("/", router);
 

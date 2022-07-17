@@ -14,3 +14,53 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.map-container {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+}
+
+.location-icon {
+  font-size: 2rem;
+  color: red;
+}
+
+.loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.loader img {
+  width: 200px;
+}
+
+.loader h1 {
+  margin-top: 50px;
+  color: #fff;
+}
+
+.location-info {
+  position: absolute;
+  top: 80px;
+  left: 50px;
+  width: 20%;
+  height: 10%;
+  padding: 20px;
+  background-color:rgba(38, 38, 38, 1);
+  border-radius: 10px;
+  font-size: 0.8vw;
+  color: #ffffff;
+}
+
+.location-info ul {
+  list-style: none;
+  padding: 0;
+}
+
+.location-info li {
+  padding: 5px 0;
+}

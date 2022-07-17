@@ -3,6 +3,7 @@ import './App.css';
 import Home from "./pages/Home";
 import Mint from "./pages/Mint";
 import Image from "./pages/Image";
+import Map from "./pages/Map";
 import NoPage from "./pages/NoPage";
 import {
   BrowserRouter,
@@ -20,6 +21,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/image" element={!ethers.utils.isAddress(wallet) ? <Navigate to="/" /> : <Image />}/>
         <Route path="/mint" element={!ethers.utils.isAddress(wallet) ? <Navigate to="/" /> : <Mint />}/>
+        <Route path="/map" element={!ethers.utils.isAddress(wallet) ? <Navigate to="/" /> : <Map />}/>
         <Route path="*" element={<NoPage />} />
       </Routes>
     </BrowserRouter>

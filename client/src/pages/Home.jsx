@@ -47,6 +47,7 @@ function Home() {
                There are 3 stages of NFTs: 'bad', 'neutral' and 'good' that will change accordingly to the data provided by an oracle from environmental API.</p>
             <button onClick={connectWalletHandler} className="btn btn-secondary btn-sm m-2">{connButtonText}</button>
             {errorMessage}
+			<div><iframe width="800" height="800" frameborder="0" src="https://globalforestwatch.org/embed/widget/burnedAreaRanked/global?burnedAreaRanked=eyJoaWdobGlnaHRlZCI6ZmFsc2V9"></iframe></div>
         </div>
 
     );

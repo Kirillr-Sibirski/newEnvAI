@@ -162,7 +162,7 @@ function Image() {
     const proceed = () => {
       // Do a check if images were generated
       // Export image to be used at minting page
-      window.location.href = '/mint'; // Redirect to NFT minting page 
+      window.location.href = '/map'; // Redirect to map page 
       localStorage.setItem("image_neu", image_neu)
       localStorage.setItem("image_pos", image_pos)
       localStorage.setItem("image_neg", image_neg)
