@@ -6,6 +6,7 @@
 With NewEnvAI people can freely mint dynamic animal NFTs which represent real environmental data.
 The uniqueness of this project is determined by the usage of DALL-E neural network which allows users to create any images by just writing a description of it (e.g. bear in river)!
 There are 3 stages of NFTs: 'bad', 'neutral' and 'good' that will change accordingly to the data provided by an oracle from environmental API.
+Video demo: https://www.youtube.com/watch?v=SpqBBiUuZQU
 <hr>
 Before starting this app you need to have 3 API keys.
 https://replicate.com/
